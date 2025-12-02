@@ -51,7 +51,7 @@ export default function Header() {
   // For simple email testing without setting up Google Cloud Console
   const handleLogin = async () => {
     // This will send a magic link to your email
-    await supabase.auth.signInWithOtp({ email: 'your-email@example.com' });
+    await supabase.auth.signInWithOtp({ email: 'jhornjr@gmail.com' });
   };
 
   const handleLogout = async () => {

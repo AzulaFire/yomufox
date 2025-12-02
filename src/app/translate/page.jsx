@@ -31,7 +31,7 @@ export default function TranslatePage() {
         return;
       }
 
-      // FIX: URL is now a correct string
+      // FIX: URL is now a clean string
       const response = await axios.post(
         '[http://127.0.0.1:8000/generate_study_set](http://127.0.0.1:8000/generate_study_set)',
         {
