@@ -31,14 +31,10 @@ export default function TranslatePage() {
         return;
       }
 
-      // FIX: URL is now a clean string
-      const response = await axios.post(
-        '[http://127.0.0.1:8000/generate_study_set](http://127.0.0.1:8000/generate_study_set)',
-        {
-          sentence: text,
-          user_id: user.id,
-        }
-      );
+      const response = await axios.post('/api/generate_study_set', {
+        sentence: text,
+        user_id: user.id,
+      });
 
       if (response.data.success) {
         setResult(response.data.data);
