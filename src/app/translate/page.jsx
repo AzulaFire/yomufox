@@ -3,99 +3,174 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function TranslatePage() {
+  const { t } = useLanguage();
   const [text, setText] = useState('');
-  const [translation, setTranslation] = useState('');
-  const [targetLang, setTargetLang] = useState('ja');
-  const [politeness, setPoliteness] = useState('casual');
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleTranslate = async () => {
+  const handleGenerate = async () => {
     if (!text) return;
     setLoading(true);
-    setTranslation('');
+    setError('');
+    setResult(null);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/translate', {
-        text,
-        target_language: targetLang,
-        politeness,
-      });
+      // 1. Get User ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setError('Please login to generate study sets.');
+        setLoading(false);
+        return;
+      }
 
-      if (response.data.translation) {
-        setTranslation(response.data.translation);
-      } else if (response.data.error) {
-        setTranslation(`Error: ${response.data.error}`);
+      // 2. Call Backend
+      // Ensure your backend URL is correct (localhost for dev, production URL for deploy)
+      const response = await axios.post(
+        '[http://127.0.0.1:8000/generate_study_set](http://127.0.0.1:8000/generate_study_set)',
+        {
+          sentence: text,
+          user_id: user.id,
+        }
+      );
+
+      if (response.data.success) {
+        setResult(response.data.data);
       }
     } catch (err) {
-      setTranslation(`Request failed: ${err.message}`);
+      console.error(err);
+      setError(
+        err.response?.data?.detail ||
+          err.message ||
+          'An unexpected error occurred.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className='w-full py-10'>
-      <motion.h2
+    <div className='w-full py-12 max-w-4xl mx-auto'>
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className='text-4xl font-semibold mb-8 text-center'
+        className='text-center mb-10'
       >
-        Translate
-      </motion.h2>
+        <h2 className='text-4xl font-bold bg-linear-to-r from-white to-neutral-400 bg-clip-text text-transparent mb-4 pb-2 leading-tight'>
+          {t.translatePage?.title || 'AI Language Studio'}
+        </h2>
+        <p className='text-neutral-400'>
+          {t.translatePage?.desc ||
+            'Enter a sentence to generate a full study set: Translation, Grammar, and Flashcards.'}
+        </p>
+      </motion.div>
 
-      <div className='w-full max-w-3xl mx-auto'>
+      {/* Input Area */}
+      <div className='relative bg-neutral-800/50 rounded-2xl p-2 ring-1 ring-white/10 focus-within:ring-orange-500/50 transition-all'>
         <textarea
-          className='w-full p-4 rounded-lg bg-neutral-700 text-neutral-50 mb-4'
-          rows={5}
-          placeholder='Enter text to translate'
+          className='w-full bg-transparent p-6 text-lg text-white placeholder-neutral-500 resize-none outline-none min-h-[150px]'
+          placeholder={
+            t.translatePage?.placeholder ||
+            'E.g. I want to buy a train ticket to Kyoto.'
+          }
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-
-        <div className='flex gap-4 mb-4 w-full'>
-          <select
-            className='flex-1 p-2 rounded-lg bg-neutral-700 text-neutral-50'
-            value={targetLang}
-            onChange={(e) => setTargetLang(e.target.value)}
+        <div className='flex justify-between items-center px-4 pb-4'>
+          <span className='text-xs text-neutral-500'>{text.length} chars</span>
+          <Button
+            onClick={handleGenerate}
+            disabled={loading || !text}
+            className='bg-orange-600 hover:bg-orange-700 text-white rounded-full px-6'
           >
-            <option value='ja'>Japanese</option>
-            <option value='en'>English</option>
-          </select>
-
-          <select
-            className='flex-1 p-2 rounded-lg bg-neutral-700 text-neutral-50'
-            value={politeness}
-            onChange={(e) => setPoliteness(e.target.value)}
-          >
-            <option value='casual'>Casual</option>
-            <option value='polite'>Polite</option>
-            <option value='business'>Business</option>
-          </select>
+            {loading ? (
+              <Loader2 className='animate-spin w-4 h-4 mr-2' />
+            ) : (
+              <Sparkles className='w-4 h-4 mr-2' />
+            )}
+            {loading
+              ? t.translatePage?.loading || 'Creating Lesson...'
+              : t.translatePage?.button || 'Generate'}
+          </Button>
         </div>
+      </div>
 
-        <Button
-          onClick={handleTranslate}
-          disabled={loading}
-          className='bg-orange-600 text-neutral-900 hover:bg-orange-600 mb-6 w-full'
-        >
-          {loading ? 'Translating...' : 'Translate'}
-        </Button>
+      {error && (
+        <div className='mt-4 p-4 bg-red-900/20 border border-red-500/30 text-red-400 rounded-lg text-sm'>
+          {error}
+        </div>
+      )}
 
-        {translation && (
+      {/* Results Display */}
+      <AnimatePresence>
+        {result && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className='w-full bg-neutral-700 p-4 rounded-lg'
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className='mt-12 grid gap-6'
           >
-            <h2 className='font-semibold mb-2'>Translation:</h2>
-            <p>{translation}</p>
+            {/* Translation Card */}
+            <div className='bg-neutral-900 border border-white/10 rounded-xl p-6'>
+              <h3 className='text-sm font-medium text-orange-500 uppercase tracking-wider mb-2'>
+                Translation
+              </h3>
+              <p className='text-2xl font-medium text-white'>
+                {result.translation}
+              </p>
+            </div>
+
+            {/* Grammar Card */}
+            <div className='bg-neutral-900 border border-white/10 rounded-xl p-6'>
+              <h3 className='text-sm font-medium text-blue-500 uppercase tracking-wider mb-2'>
+                Grammar Breakdown
+              </h3>
+              <p className='text-neutral-300 leading-relaxed'>
+                {result.grammar_explanation}
+              </p>
+            </div>
+
+            {/* Flashcards Preview */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              {result.flashcards.map((card, i) => (
+                <div
+                  key={i}
+                  className='bg-neutral-800/50 p-4 rounded-lg border border-white/5 flex flex-col justify-between'
+                >
+                  <div>
+                    <p className='text-lg font-bold text-white mb-1'>
+                      {card.front}
+                    </p>
+                    <p className='text-xs text-neutral-500 mb-2'>
+                      {card.reading}
+                    </p>
+                  </div>
+                  <p className='text-sm text-neutral-300 border-t border-white/5 pt-2 mt-2'>
+                    {card.back}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className='flex justify-center mt-8'>
+              <Button
+                variant='outline'
+                className='gap-2'
+                onClick={() => (window.location.href = '/flashcards')}
+              >
+                Go to Flashcards <ArrowRight className='w-4 h-4' />
+              </Button>
+            </div>
           </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

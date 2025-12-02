@@ -1,7 +1,23 @@
 {
   "title": "単語カード",
-  "placeholder": "単語カード機能は近日公開予定",
-  "translate": "翻訳",
-  "quizzes": "クイズ",
-  "grammar": "文法ヘルパー"
+  "modules": {
+    "translate": "翻訳",
+    "flashcards": "単語カード",
+    "quizzes": "クイズ",
+    "grammar": "文法"
+  },
+  "translatePage": {
+    "title": "AI言語スタジオ",
+    "desc": "文章を入力すると、翻訳、文法解説、単語カードが自動生成されます。",
+    "placeholder": "例：京都行きの電車の切符を買いたいです。",
+    "button": "生成する",
+    "loading": "作成中..."
+  },
+  "flashcardsPage": {
+    "title": "あなたのデッキ",
+    "empty": "まだ単語カードがありません。翻訳ページで作成してください！",
+    "createBtn": "セットを作成",
+    "frontLabel": "日本語",
+    "backLabel": "意味"
+  }
 }

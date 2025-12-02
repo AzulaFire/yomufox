@@ -1,7 +1,23 @@
 {
   "title": "Flashcards",
-  "placeholder": "Flashcards coming soon",
-  "translate": "Translate",
-  "quizzes": "Quizzes",
-  "grammar": "Grammar Helper"
+  "modules": {
+    "translate": "Translate",
+    "flashcards": "Flashcards",
+    "quizzes": "Quizzes",
+    "grammar": "Grammar"
+  },
+  "translatePage": {
+    "title": "AI Language Studio",
+    "desc": "Enter a sentence to generate a full study set: Translation, Grammar, and Flashcards.",
+    "placeholder": "E.g. I want to buy a train ticket to Kyoto.",
+    "button": "Generate",
+    "loading": "Creating Lesson..."
+  },
+  "flashcardsPage": {
+    "title": "Your Deck",
+    "empty": "No flashcards yet. Go to Translate to generate some!",
+    "createBtn": "Create First Set",
+    "frontLabel": "Japanese",
+    "backLabel": "Meaning"
+  }
 }

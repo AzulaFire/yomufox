@@ -1,89 +1,165 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
+import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function FlashcardsPage() {
-  const mockFlashcards = [
-    {
-      english: 'Good morning',
-      japanese: 'おはようございます',
-      reading: 'Ohayou gozaimasu',
-      example:
-        'Good morning! How are you today? / おはようございます！今日はいかがですか？',
-    },
-    {
-      english: 'Thank you',
-      japanese: 'ありがとう',
-      reading: 'Arigatou',
-      example: 'Thank you for your help. / 助けてくれてありがとう。',
-    },
-    {
-      english: 'I am learning Japanese',
-      japanese: '私は日本語を勉強しています',
-      reading: 'Watashi wa nihongo o benkyou shiteimasu',
-      example:
-        'I am learning Japanese every day. / 毎日日本語を勉強しています。',
-    },
-  ];
-
+  const { t } = useLanguage();
+  const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showJapanese, setShowJapanese] = useState(true);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const card = mockFlashcards[currentIndex];
+  useEffect(() => {
+    const fetchCards = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data } = await supabase
+          .from('cards')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (data) setCards(data);
+      }
+      setLoading(false);
+    };
+
+    fetchCards();
+  }, []);
+
+  if (loading)
+    return (
+      <div className='flex h-[50vh] justify-center items-center'>
+        <Loader2 className='animate-spin text-orange-500 w-8 h-8' />
+      </div>
+    );
 
   return (
-    <div className='w-full py-10'>
-      <motion.h2
-        key='flashcards-title'
+    <div className='w-full py-12 flex flex-col items-center max-w-4xl mx-auto'>
+      {/* Animated Title */}
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className='text-4xl font-semibold mb-8 text-center'
+        className='text-center mb-10'
       >
-        Flashcards
-      </motion.h2>
+        <h2 className='text-4xl font-bold bg-linear-to-r from-white to-neutral-400 bg-clip-text text-transparent mb-4 pb-2 leading-tight'>
+          {t.flashcardsPage?.title || 'Your Flashcards'}
+        </h2>
+        <p className='text-neutral-400'>
+          Review the vocabulary you&apos;ve collected from your translations.
+        </p>
+      </motion.div>
 
-      <div className='w-full max-w-3xl mx-auto flex flex-col gap-6'>
-        {/* ONLY animate when index changes, not on page load */}
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          className='w-full bg-neutral-700 p-6 rounded-xl text-center cursor-pointer hover:bg-neutral-600 transition-colors'
-        >
-          <p className='text-xl font-semibold mb-2'>
-            {showJapanese ? card.japanese : card.english}
+      {cards.length === 0 ? (
+        <div className='text-center py-20 text-neutral-400'>
+          <p>
+            {t.flashcardsPage?.empty ||
+              'No flashcards yet. Go to Translate to generate some!'}
           </p>
-          {showJapanese && (
-            <p className='text-neutral-400 mb-2'>{card.reading}</p>
-          )}
-          <p className='text-neutral-300 text-sm'>{card.example}</p>
-        </motion.div>
-
-        <div className='flex gap-4 justify-center'>
           <Button
-            className='border border-neutral-900 w-48 bg-orange-600 text-neutral-50 hover:bg-neutral-600 hover:text-neutral-50'
-            onClick={() =>
-              setCurrentIndex((i) =>
-                i === 0 ? mockFlashcards.length - 1 : i - 1
-              )
-            }
+            className='mt-4 bg-orange-600 hover:bg-orange-700 text-white'
+            onClick={() => (window.location.href = '/translate')}
           >
-            Previous
-          </Button>
-          <Button
-            className='border border-neutral-900 w-48 bg-orange-600 text-neutral-50 hover:bg-neutral-600 hover:text-neutral-50'
-            onClick={() =>
-              setCurrentIndex((i) => (i + 1) % mockFlashcards.length)
-            }
-          >
-            Next
+            {t.flashcardsPage?.createBtn || 'Create First Set'}
           </Button>
         </div>
-      </div>
+      ) : (
+        <div className='w-full max-w-2xl'>
+          <div className='w-full flex justify-between items-center mb-6 px-4'>
+            <span className='text-sm font-medium text-orange-500'>
+              Studying
+            </span>
+            <span className='text-sm text-neutral-500'>
+              {currentIndex + 1} / {cards.length}
+            </span>
+          </div>
+
+          <div
+            className='relative w-full h-[400px] perspective-1000'
+            onClick={() => setIsFlipped(!isFlipped)}
+          >
+            <motion.div
+              className='w-full h-full relative preserve-3d cursor-pointer'
+              animate={{ rotateY: isFlipped ? 180 : 0 }}
+              transition={{
+                duration: 0.6,
+                type: 'spring',
+                stiffness: 260,
+                damping: 20,
+              }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {/* Front */}
+              <div className='absolute w-full h-full backface-hidden bg-neutral-800 border-2 border-neutral-700 rounded-3xl flex flex-col items-center justify-center p-8 shadow-2xl'>
+                <span className='absolute top-6 left-6 text-xs font-bold text-orange-500 tracking-widest uppercase'>
+                  {t.flashcardsPage?.frontLabel || 'Japanese'}
+                </span>
+                <h3 className='text-5xl font-bold mb-4 text-white'>
+                  {cards[currentIndex].front}
+                </h3>
+                <p className='text-neutral-400 text-lg'>
+                  {cards[currentIndex].reading}
+                </p>
+              </div>
+
+              {/* Back */}
+              <div
+                className='absolute w-full h-full backface-hidden bg-neutral-900 border-2 border-orange-500/30 rounded-3xl flex flex-col items-center justify-center p-8 shadow-2xl'
+                style={{ transform: 'rotateY(180deg)' }}
+              >
+                <span className='absolute top-6 left-6 text-xs font-bold text-blue-500 tracking-widest uppercase'>
+                  {t.flashcardsPage?.backLabel || 'Meaning'}
+                </span>
+                <h3 className='text-3xl font-bold mb-6 text-center text-white'>
+                  {cards[currentIndex].back}
+                </h3>
+                <div className='w-full h-px bg-white/10 mb-6' />
+                <p className='text-neutral-400 text-center italic'>
+                  &quot;{cards[currentIndex].example_sentence}&quot;
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          <div className='flex gap-4 mt-10 justify-center'>
+            <Button
+              variant='outline'
+              className='w-32 border-neutral-700 text-neutral-300 hover:bg-neutral-800 hover:text-white'
+              onClick={() => {
+                setIsFlipped(false);
+                setTimeout(
+                  () =>
+                    setCurrentIndex((i) =>
+                      i === 0 ? cards.length - 1 : i - 1
+                    ),
+                  200
+                );
+              }}
+            >
+              Previous
+            </Button>
+            <Button
+              className='w-32 bg-orange-600 hover:bg-orange-700 text-white'
+              onClick={() => {
+                setIsFlipped(false);
+                setTimeout(
+                  () => setCurrentIndex((i) => (i + 1) % cards.length),
+                  200
+                );
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
