@@ -17,7 +17,39 @@
     "title": "あなたのデッキ",
     "empty": "まだ単語カードがありません。翻訳ページで作成してください！",
     "createBtn": "セットを作成",
-    "frontLabel": "日本語",
+    "frontLabel": "英語",
     "backLabel": "意味"
+  },
+  "quizzesPage": {
+    "title": "デイリークイズ",
+    "desc": "あなたのデッキを使って知識をテストしましょう。"
+  },
+  "pricingPage": {
+    "title": "シンプルで透明な料金プラン",
+    "desc": "無料で始めて、AIツールで英語マスターを目指しましょう。",
+    "freeTitle": "無料プラン",
+    "freeDesc": "気軽に学習を始めたい方に最適です。",
+    "proTitle": "プロプラン",
+    "proDesc": "本気で学びたい方へ。すべての機能が無制限。",
+    "currentPlan": "現在のプラン",
+    "upgradeBtn": "プロにアップグレード",
+    "features": {
+      "generations": "AI生成回数",
+      "flashcards": "単語カードデッキ",
+      "grammar": "文法分析",
+      "quizzes": "デイリークイズ",
+      "srs": "間隔反復システム (SRS)",
+      "audio": "ネイティブ音声生成",
+      "context": "ロールプレイチャット"
+    }
+  },
+  "footer": {
+    "desc": "英語習得のためのAIパートナー。文脈に沿った翻訳、単語カードの即時作成、自然な文法学習が可能です。",
+    "product": "プロダクト",
+    "connect": "リンク",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "rights": "全著作権所有",
+    "system": "システム稼働中"
   }
 }

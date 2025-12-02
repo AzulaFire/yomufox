@@ -78,7 +78,7 @@ export default function Home() {
           if (!Icon) return null;
           return (
             <Link key={key} href={`/${key}`}>
-              <motion.div className='bg-neutral-700 rounded-xl p-6 flex flex-col items-center hover:bg-neutral-600 transition-colors cursor-pointer'>
+              <motion.div className='bg-neutral-700 rounded-xl p-6 flex flex-col items-center hover:bg-orange-500 transition-colors cursor-pointer'>
                 <Icon className='w-8 h-8 mb-4' />
                 <h3 className='text-xl font-semibold mb-2'>{value}</h3>
               </motion.div>

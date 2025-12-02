@@ -24,7 +24,11 @@ else:
 app = FastAPI()
 
 # Security: Allow frontend to access backend
-origins = ["http://localhost:3000"]
+# IMPORTANT: Update this list with your Vercel URL once deployed
+origins = [
+    "http://localhost:3000",
+    "https://yomufox.vercel.app" 
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,29 +62,40 @@ class StudySetResponse(BaseModel):
 # Endpoints
 # ------------------------------
 
-@app.post("/generate_study_set")
+@app.post("/api/generate_study_set") 
 async def generate_study_set(req: GenerateRequest):
     print(f"Generating study set for: {req.sentence}")
     
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
 
+    # --- DYNAMIC PROMPT LOGIC (New) ---
+    if req.target_language == 'ja':
+        teacher_persona = "You are a Japanese language teacher teaching English speakers."
+        output_lang = "Japanese"
+        native_lang_instructions = "Explain grammar in English."
+    else:
+        # For Japanese users learning English
+        teacher_persona = "You are an English language teacher teaching Japanese speakers."
+        output_lang = "English"
+        native_lang_instructions = "Explain grammar in Japanese."
+
     # 1. System Prompt for Structured JSON
-    system_prompt = """
-    You are a Japanese language teacher. 
+    system_prompt = f"""
+    {teacher_persona}
     Analyze the user's sentence. 
-    1. Translate it naturally.
-    2. Explain the key grammar point briefly.
+    1. Translate it naturally into {output_lang}.
+    2. Explain the key grammar point briefly. {native_lang_instructions}
     3. Extract 3-5 keywords and create flashcards for them.
     
     Output strictly valid JSON matching this structure:
-    {
+    {{
         "translation": "...",
         "grammar_explanation": "...",
         "flashcards": [
-            {"front": "Word", "back": "Meaning", "reading": "Hiragana", "example": "Short example sentence"}
+            {{"front": "Word in {output_lang}", "back": "Meaning in Native Lang", "reading": "Pronunciation/Reading", "example": "Short example sentence"}}
         ]
-    }
+    }}
     """
 
     try:

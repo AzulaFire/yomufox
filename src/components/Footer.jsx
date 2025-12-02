@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import { Twitter, Github, Linkedin } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className='w-full border-t border-white/10 bg-neutral-900/50 mt-20'>
       <div className='max-w-7xl mx-auto px-6 py-12'>
@@ -15,22 +20,23 @@ export default function Footer() {
               Yomu<span className='text-orange-500'>Fox</span>
             </Link>
             <p className='text-neutral-400 text-sm max-w-sm leading-relaxed'>
-              Your AI-powered companion for mastering Japanese. Translate
-              contextually, create flashcards instantly, and learn grammar
-              naturally.
+              {t.footer?.desc ||
+                'Your AI-powered companion for mastering Japanese. Translate contextually, create flashcards instantly, and learn grammar naturally.'}
             </p>
           </div>
 
           {/* Product Links */}
           <div>
-            <h4 className='font-semibold text-white mb-4'>Product</h4>
+            <h4 className='font-semibold text-white mb-4'>
+              {t.footer?.product || 'Product'}
+            </h4>
             <ul className='space-y-2 text-sm text-neutral-400'>
               <li>
                 <Link
                   href='/translate'
                   className='hover:text-orange-500 transition-colors'
                 >
-                  Translate
+                  {t.modules?.translate || 'Translate'}
                 </Link>
               </li>
               <li>
@@ -38,7 +44,7 @@ export default function Footer() {
                   href='/flashcards'
                   className='hover:text-orange-500 transition-colors'
                 >
-                  Flashcards
+                  {t.modules?.flashcards || 'Flashcards'}
                 </Link>
               </li>
               <li>
@@ -46,7 +52,7 @@ export default function Footer() {
                   href='/quizzes'
                   className='hover:text-orange-500 transition-colors'
                 >
-                  Quizzes
+                  {t.modules?.quizzes || 'Quizzes'}
                 </Link>
               </li>
               <li>
@@ -54,7 +60,7 @@ export default function Footer() {
                   href='/grammar'
                   className='hover:text-orange-500 transition-colors'
                 >
-                  Grammar
+                  {t.modules?.grammar || 'Grammar'}
                 </Link>
               </li>
             </ul>
@@ -62,7 +68,9 @@ export default function Footer() {
 
           {/* Legal / Socials */}
           <div>
-            <h4 className='font-semibold text-white mb-4'>Connect</h4>
+            <h4 className='font-semibold text-white mb-4'>
+              {t.footer?.connect || 'Connect'}
+            </h4>
             <div className='flex gap-4 mb-4'>
               <a
                 href='#'
@@ -86,12 +94,12 @@ export default function Footer() {
             <ul className='space-y-2 text-sm text-neutral-400'>
               <li>
                 <Link href='#' className='hover:text-white transition-colors'>
-                  Privacy Policy
+                  {t.footer?.privacy || 'Privacy Policy'}
                 </Link>
               </li>
               <li>
                 <Link href='#' className='hover:text-white transition-colors'>
-                  Terms of Service
+                  {t.footer?.terms || 'Terms of Service'}
                 </Link>
               </li>
             </ul>
@@ -100,12 +108,13 @@ export default function Footer() {
 
         <div className='border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4'>
           <p className='text-neutral-500 text-sm'>
-            © {new Date().getFullYear()} YomuFox. All rights reserved.
+            © {new Date().getFullYear()} YomuFox.{' '}
+            {t.footer?.rights || 'All rights reserved.'}
           </p>
           <div className='flex items-center gap-2'>
             <span className='w-2 h-2 rounded-full bg-green-500 animate-pulse'></span>
             <span className='text-neutral-500 text-xs font-mono'>
-              SYSTEM OPERATIONAL
+              {t.footer?.system || 'SYSTEM OPERATIONAL'}
             </span>
           </div>
         </div>

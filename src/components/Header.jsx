@@ -13,19 +13,20 @@ import {
   X,
   LogIn,
   LogOut,
-  User,
+  Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { supabase } from '@/lib/supabase';
+import LoginModal from './LoginModal';
 
 export default function Header() {
   const { lang, toggleLang, t } = useLanguage();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check active session
     const checkUser = async () => {
       const {
         data: { session },
@@ -34,7 +35,6 @@ export default function Header() {
     };
     checkUser();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -43,16 +43,6 @@ export default function Header() {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // const handleLogin = async () => {
-  //   await supabase.auth.signInWithOAuth({ provider: 'google' });
-  // };
-
-  // For simple email testing without setting up Google Cloud Console
-  const handleLogin = async () => {
-    // This will send a magic link to your email
-    await supabase.auth.signInWithOtp({ email: 'jhornjr@gmail.com' });
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -82,125 +72,154 @@ export default function Header() {
   ];
 
   return (
-    <header className='sticky top-0 z-50 w-full border-b border-white/10 bg-neutral-900/80 backdrop-blur-md'>
-      <div className='max-w-7xl mx-auto flex justify-between items-center px-6 py-4'>
-        {/* Logo */}
-        <Link href='/' passHref className='flex items-center gap-3 group'>
-          <div className='relative w-10 h-10 transition-transform group-hover:scale-110'>
-            <Image
-              src='/logo.png'
-              alt='YomuFox Logo'
-              fill
-              className='object-contain'
-            />
-          </div>
-          <span className='text-2xl font-bold tracking-tight text-white'>
-            Yomu<span className='text-orange-500'>Fox</span>
-          </span>
-        </Link>
+    <>
+      <header className='sticky top-0 z-50 w-full border-b border-white/10 bg-neutral-900/80 backdrop-blur-md'>
+        <div className='max-w-7xl mx-auto flex justify-between items-center px-6 py-4'>
+          {/* Logo */}
+          <Link href='/' passHref className='flex items-center gap-3 group'>
+            <div className='relative w-10 h-10 transition-transform group-hover:scale-110'>
+              <Image
+                src='/logo.png'
+                alt='YomuFox Logo'
+                fill
+                className='object-contain'
+              />
+            </div>
+            <span className='text-2xl font-bold tracking-tight text-white'>
+              Yomu<span className='text-orange-500'>Fox</span>
+            </span>
+          </Link>
 
-        {/* Desktop Nav */}
-        <nav className='hidden md:flex items-center gap-2'>
-          {modules.map((mod) => (
-            <Link key={mod.href} href={mod.href}>
+          {/* Desktop Nav */}
+          <nav className='hidden md:flex items-center gap-2'>
+            {modules.map((mod) => (
+              <Link key={mod.href} href={mod.href}>
+                <Button
+                  variant='ghost'
+                  className={`text-sm font-medium transition-all ${
+                    pathname === mod.href
+                      ? 'bg-orange-500/10 text-orange-500'
+                      : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {mod.icon}
+                  <span className='ml-2'>{mod.name}</span>
+                </Button>
+              </Link>
+            ))}
+            {/* Pricing Link */}
+            <Link href='/pricing'>
               <Button
                 variant='ghost'
                 className={`text-sm font-medium transition-all ${
-                  pathname === mod.href
+                  pathname === '/pricing'
                     ? 'bg-orange-500/10 text-orange-500'
                     : 'text-neutral-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                {mod.icon}
-                <span className='ml-2'>{mod.name}</span>
+                <Sparkles className='w-5 h-5' />
+                <span className='ml-2'>Pricing</span>
               </Button>
             </Link>
-          ))}
-        </nav>
+          </nav>
 
-        {/* Actions */}
-        <div className='hidden md:flex items-center gap-3'>
-          <Button
-            onClick={toggleLang}
-            variant='outline'
-            className='border-neutral-700 bg-transparent text-neutral-300 hover:bg-neutral-800 hover:text-white'
-          >
-            {lang === 'en' ? '🇺🇸 EN' : '🇯🇵 JP'}
-          </Button>
+          {/* Actions */}
+          <div className='hidden md:flex items-center gap-3'>
+            <Button
+              onClick={toggleLang}
+              variant='outline'
+              className='border-neutral-700 bg-transparent text-neutral-300 hover:bg-neutral-800 hover:text-white'
+            >
+              {lang === 'en' ? '🇺🇸 EN' : '🇯🇵 JP'}
+            </Button>
 
-          {user ? (
-            <div className='flex items-center gap-3 pl-3 border-l border-neutral-700'>
-              {/* FIX: Removed 'flex' from base classes to avoid conflict with 'hidden' */}
-              <div className='hidden lg:flex flex-col text-right'>
-                <span className='text-xs text-neutral-400'>Pro Plan</span>
-                <span className='text-sm font-medium text-white truncate max-w-[100px]'>
-                  {user.email.split('@')[0]}
-                </span>
+            {user ? (
+              <div className='flex items-center gap-3 pl-3 border-l border-neutral-700'>
+                <div className='hidden lg:flex flex-col text-right'>
+                  <span className='text-xs text-neutral-400'>Pro Plan</span>
+                  <span className='text-sm font-medium text-white truncate max-w-[100px]'>
+                    {user.email.split('@')[0]}
+                  </span>
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  size='icon'
+                  variant='ghost'
+                  className='text-neutral-400 hover:text-red-400'
+                >
+                  <LogOut className='w-5 h-5' />
+                </Button>
               </div>
+            ) : (
+              <Button
+                onClick={() => setLoginOpen(true)}
+                className='bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-900/20'
+              >
+                <LogIn className='w-4 h-4 mr-2' /> Login
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Toggle */}
+          <div className='md:hidden'>
+            <Button variant='ghost' onClick={() => setMobileOpen(!mobileOpen)}>
+              {mobileOpen ? <X /> : <Menu />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileOpen && (
+          <div className='md:hidden absolute top-full left-0 w-full bg-neutral-900 border-b border-neutral-800 p-4 flex flex-col gap-2 shadow-2xl'>
+            {modules.map((mod) => (
+              <Link
+                key={mod.href}
+                href={mod.href}
+                onClick={() => setMobileOpen(false)}
+              >
+                <div className='flex items-center gap-3 p-3 rounded-lg text-neutral-300 hover:bg-neutral-800 hover:text-white'>
+                  {mod.icon} {mod.name}
+                </div>
+              </Link>
+            ))}
+            <Link href='/pricing' onClick={() => setMobileOpen(false)}>
+              <div className='flex items-center gap-3 p-3 rounded-lg text-neutral-300 hover:bg-neutral-800 hover:text-white'>
+                <Sparkles className='w-5 h-5' /> Pricing
+              </div>
+            </Link>
+            <div className='h-px bg-neutral-800 my-2' />
+            <Button
+              onClick={toggleLang}
+              variant='ghost'
+              className='justify-start w-full'
+            >
+              {lang === 'en' ? 'Switch to Japanese' : '英語に切り替え'}
+            </Button>
+            {user ? (
               <Button
                 onClick={handleLogout}
-                size='icon'
                 variant='ghost'
-                className='text-neutral-400 hover:text-red-400'
+                className='justify-start w-full text-red-400'
               >
-                <LogOut className='w-5 h-5' />
+                Logout
               </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={handleLogin}
-              className='bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-900/20'
-            >
-              <LogIn className='w-4 h-4 mr-2' /> Login
-            </Button>
-          )}
-        </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  setMobileOpen(false);
+                  setLoginOpen(true);
+                }}
+                className='w-full bg-orange-600'
+              >
+                Login
+              </Button>
+            )}
+          </div>
+        )}
+      </header>
 
-        {/* Mobile Toggle */}
-        <div className='md:hidden'>
-          <Button variant='ghost' onClick={() => setMobileOpen(!mobileOpen)}>
-            {mobileOpen ? <X /> : <Menu />}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className='md:hidden absolute top-full left-0 w-full bg-neutral-900 border-b border-neutral-800 p-4 flex flex-col gap-2 shadow-2xl'>
-          {modules.map((mod) => (
-            <Link
-              key={mod.href}
-              href={mod.href}
-              onClick={() => setMobileOpen(false)}
-            >
-              <div className='flex items-center gap-3 p-3 rounded-lg text-neutral-300 hover:bg-neutral-800 hover:text-white'>
-                {mod.icon} {mod.name}
-              </div>
-            </Link>
-          ))}
-          <div className='h-px bg-neutral-800 my-2' />
-          <Button
-            onClick={toggleLang}
-            variant='ghost'
-            className='justify-start w-full'
-          >
-            {lang === 'en' ? 'Switch to Japanese' : '英語に切り替え'}
-          </Button>
-          {user ? (
-            <Button
-              onClick={handleLogout}
-              variant='ghost'
-              className='justify-start w-full text-red-400'
-            >
-              Logout
-            </Button>
-          ) : (
-            <Button onClick={handleLogin} className='w-full bg-orange-600'>
-              Login
-            </Button>
-          )}
-        </div>
-      )}
-    </header>
+      {/* Login Modal Component */}
+      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
+    </>
   );
 }

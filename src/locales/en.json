@@ -19,5 +19,37 @@
     "createBtn": "Create First Set",
     "frontLabel": "Japanese",
     "backLabel": "Meaning"
+  },
+  "quizzesPage": {
+    "title": "Daily Quiz",
+    "desc": "Test your knowledge against your personal deck."
+  },
+  "pricingPage": {
+    "title": "Simple, Transparent Pricing",
+    "desc": "Start for free, upgrade to master Japanese faster with AI-powered tools.",
+    "freeTitle": "Free",
+    "freeDesc": "Perfect for casual learners exploring the language.",
+    "proTitle": "Pro",
+    "proDesc": "Serious tools for serious learners. Unlimited access.",
+    "currentPlan": "Current Plan",
+    "upgradeBtn": "Upgrade to Pro",
+    "features": {
+      "generations": "AI Generations",
+      "flashcards": "Flashcard Decks",
+      "grammar": "Grammar Analysis",
+      "quizzes": "Daily Quizzes",
+      "srs": "Spaced Repetition System",
+      "audio": "Native Audio Generation",
+      "context": "Roleplay Chat Mode"
+    }
+  },
+  "footer": {
+    "desc": "Your AI-powered companion for mastering Japanese. Translate contextually, create flashcards instantly, and learn grammar naturally.",
+    "product": "Product",
+    "connect": "Connect",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "rights": "All rights reserved.",
+    "system": "SYSTEM OPERATIONAL"
   }
 }
