@@ -44,8 +44,14 @@ export default function Header() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // const handleLogin = async () => {
+  //   await supabase.auth.signInWithOAuth({ provider: 'google' });
+  // };
+
+  // For simple email testing without setting up Google Cloud Console
   const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google' });
+    // This will send a magic link to your email
+    await supabase.auth.signInWithOtp({ email: 'your-email@example.com' });
   };
 
   const handleLogout = async () => {

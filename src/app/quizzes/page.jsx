@@ -16,6 +16,7 @@ export default function QuizzesPage() {
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
+    // FIX: Function defined INSIDE useEffect to prevent reference errors
     const generateQuiz = async () => {
       setLoading(true);
       const {
@@ -30,11 +31,15 @@ export default function QuizzesPage() {
           .limit(20);
 
         if (cards && cards.length >= 4) {
-          // Simple logic: Pick a random card as the "Question", pick 3 random "Wrong Answers"
+          // Create 5 random questions
           const newQuiz = Array.from({ length: 5 }).map(() => {
             const correctCard = cards[Math.floor(Math.random() * cards.length)];
             const others = cards.filter((c) => c.id !== correctCard.id);
+
+            // Shuffle others and take 3 wrong answers
             const wrong = others.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            // Combine correct + wrong and shuffle options
             const options = [...wrong, correctCard].sort(
               () => 0.5 - Math.random()
             );

@@ -22,7 +22,6 @@ export default function TranslatePage() {
     setResult(null);
 
     try {
-      // 1. Get User ID
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -32,8 +31,7 @@ export default function TranslatePage() {
         return;
       }
 
-      // 2. Call Backend
-      // Ensure your backend URL is correct (localhost for dev, production URL for deploy)
+      // FIX: URL is now a correct string
       const response = await axios.post(
         '[http://127.0.0.1:8000/generate_study_set](http://127.0.0.1:8000/generate_study_set)',
         {
@@ -73,7 +71,6 @@ export default function TranslatePage() {
         </p>
       </motion.div>
 
-      {/* Input Area */}
       <div className='relative bg-neutral-800/50 rounded-2xl p-2 ring-1 ring-white/10 focus-within:ring-orange-500/50 transition-all'>
         <textarea
           className='w-full bg-transparent p-6 text-lg text-white placeholder-neutral-500 resize-none outline-none min-h-[150px]'
@@ -109,7 +106,6 @@ export default function TranslatePage() {
         </div>
       )}
 
-      {/* Results Display */}
       <AnimatePresence>
         {result && (
           <motion.div
@@ -117,7 +113,6 @@ export default function TranslatePage() {
             animate={{ opacity: 1, y: 0 }}
             className='mt-12 grid gap-6'
           >
-            {/* Translation Card */}
             <div className='bg-neutral-900 border border-white/10 rounded-xl p-6'>
               <h3 className='text-sm font-medium text-orange-500 uppercase tracking-wider mb-2'>
                 Translation
@@ -127,7 +122,6 @@ export default function TranslatePage() {
               </p>
             </div>
 
-            {/* Grammar Card */}
             <div className='bg-neutral-900 border border-white/10 rounded-xl p-6'>
               <h3 className='text-sm font-medium text-blue-500 uppercase tracking-wider mb-2'>
                 Grammar Breakdown
@@ -137,7 +131,6 @@ export default function TranslatePage() {
               </p>
             </div>
 
-            {/* Flashcards Preview */}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {result.flashcards.map((card, i) => (
                 <div

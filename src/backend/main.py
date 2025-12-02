@@ -12,10 +12,9 @@ from typing import List, Optional
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-supabase_key = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY") # Or SERVICE_ROLE_KEY for admin rights
+supabase_key = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY") 
 
 # Initialize Supabase
-# Ensure you have your URL and KEY in your .env file
 if not supabase_url or not supabase_key:
     print("Warning: Supabase credentials not found in environment variables.")
     supabase = None
@@ -24,7 +23,7 @@ else:
 
 app = FastAPI()
 
-# Security: In production, change this to ["https://your-app.vercel.app"]
+# Security: Allow frontend to access backend
 origins = ["http://localhost:3000"]
 
 app.add_middleware(
@@ -36,15 +35,14 @@ app.add_middleware(
 )
 
 # ------------------------------
-# Pydantic Models (The Data Structure)
+# Pydantic Models
 # ------------------------------
 
 class GenerateRequest(BaseModel):
     sentence: str
-    user_id: str # We need to know WHO is asking to save it to their DB
+    user_id: str 
     target_language: str = "ja"
 
-# These models define exactly what we want OpenAI to give us back
 class FlashcardData(BaseModel):
     front: str
     back: str
@@ -57,7 +55,7 @@ class StudySetResponse(BaseModel):
     flashcards: List[FlashcardData]
 
 # ------------------------------
-# The "Magic" Endpoint
+# Endpoints
 # ------------------------------
 
 @app.post("/generate_study_set")
@@ -67,8 +65,7 @@ async def generate_study_set(req: GenerateRequest):
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
 
-    # 1. Construct the Prompt
-    # We tell AI exactly how to format the JSON so our code doesn't break
+    # 1. System Prompt for Structured JSON
     system_prompt = """
     You are a Japanese language teacher. 
     Analyze the user's sentence. 
@@ -87,9 +84,9 @@ async def generate_study_set(req: GenerateRequest):
     """
 
     try:
-        # 2. Call OpenAI (JSON Mode)
+        # 2. Call OpenAI
         response = openai.chat.completions.create(
-            model="gpt-4o-mini", # Cheaper and faster for this task
+            model="gpt-4o-mini", 
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": req.sentence}
@@ -98,30 +95,27 @@ async def generate_study_set(req: GenerateRequest):
             temperature=0.3
         )
         
-        # 3. Parse the AI Response
+        # 3. Parse Response
         content = response.choices[0].message.content
         data = json.loads(content)
         
-        # 4. Save to Supabase (The Stickiness)
+        # 4. Save to Supabase
         
-        # A. Create the Deck (Updated to save grammar)
+        # A. Create the Deck (Saves Grammar here)
         deck_response = supabase.table("decks").insert({
             "user_id": req.user_id,
-            "title": req.sentence[:30] + "...", # Title is a snippet of the sentence
+            "title": req.sentence[:30] + "...", 
             "source_text": req.sentence,
-            "grammar_text": data.get('grammar_explanation', '') # Save grammar here
+            "grammar_text": data.get('grammar_explanation', '') 
         }).execute()
         
-        # Supabase-py v2 returns an object with .data, handle potential errors or empty data
+        # Check for data presence (Supabase-py v2 behavior)
         if not deck_response.data:
-             # In some versions/configurations, this might raise an error directly, 
-             # but checking data is safer.
-             # If using older supabase-py, response structure might differ.
-             pass 
+             print("Warning: No data returned from deck insertion")
             
         deck_id = deck_response.data[0]['id']
         
-        # B. Prepare Flashcards for Bulk Insert
+        # B. Insert Flashcards
         cards_to_insert = []
         for card in data['flashcards']:
             cards_to_insert.append({
@@ -131,16 +125,14 @@ async def generate_study_set(req: GenerateRequest):
                 "back": card['back'],
                 "reading": card['reading'],
                 "example_sentence": card['example'],
-                # Default SRS values
                 "interval": 0,
                 "ease_factor": 2.5
             })
             
-        # C. Insert Cards
         if cards_to_insert:
             supabase.table("cards").insert(cards_to_insert).execute()
         
-        # 5. Return Data to Frontend (so we can show it immediately)
+        # 5. Return Data
         return {
             "success": True,
             "deck_id": deck_id,
@@ -149,5 +141,4 @@ async def generate_study_set(req: GenerateRequest):
 
     except Exception as e:
         print(f"Error: {str(e)}")
-        # In a real app, log this error properly
         raise HTTPException(status_code=500, detail=str(e))
