@@ -166,7 +166,6 @@ function FlashcardsContent() {
 
           <div className='flex gap-4 mt-10 justify-center'>
             <Button
-              variant='outline'
               className='w-32 bg-white/5 hover:bg-white/10 text-white'
               onClick={() => {
                 setIsFlipped(false);
