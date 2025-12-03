@@ -24,10 +24,9 @@ else:
 app = FastAPI()
 
 # Security: Allow frontend to access backend
-# IMPORTANT: Update this list with your Vercel URL once deployed
 origins = [
     "http://localhost:3000",
-    "https://yomufox.vercel.app" 
+    "https://yomufox.vercel.app"
 ]
 
 app.add_middleware(
@@ -47,6 +46,10 @@ class GenerateRequest(BaseModel):
     user_id: str 
     target_language: str = "ja"
 
+class SubscriptionRequest(BaseModel):
+    user_id: str
+    subscription_id: str # PayPal Subscription ID
+
 class FlashcardData(BaseModel):
     front: str
     back: str
@@ -62,20 +65,21 @@ class StudySetResponse(BaseModel):
 # Endpoints
 # ------------------------------
 
-@app.post("/api/generate_study_set") 
+@app.post("/api/generate_study_set")
 async def generate_study_set(req: GenerateRequest):
     print(f"Generating study set for: {req.sentence}")
     
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
 
-    # --- DYNAMIC PROMPT LOGIC (New) ---
+    # --- DYNAMIC PROMPT LOGIC ---
+    # If target is 'ja', user is English speaker learning Japanese.
+    # If target is 'en', user is Japanese speaker learning English.
     if req.target_language == 'ja':
         teacher_persona = "You are a Japanese language teacher teaching English speakers."
         output_lang = "Japanese"
         native_lang_instructions = "Explain grammar in English."
     else:
-        # For Japanese users learning English
         teacher_persona = "You are an English language teacher teaching Japanese speakers."
         output_lang = "English"
         native_lang_instructions = "Explain grammar in Japanese."
@@ -121,7 +125,8 @@ async def generate_study_set(req: GenerateRequest):
             "user_id": req.user_id,
             "title": req.sentence[:30] + "...", 
             "source_text": req.sentence,
-            "grammar_text": data.get('grammar_explanation', '') 
+            "grammar_text": data.get('grammar_explanation', ''),
+            "target_language": req.target_language # Save target language
         }).execute()
         
         # Check for data presence (Supabase-py v2 behavior)
@@ -154,6 +159,25 @@ async def generate_study_set(req: GenerateRequest):
             "data": data
         }
 
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- PAYPAL ACTIVATION ENDPOINT ---
+@app.post("/api/activate-subscription")
+async def activate_subscription(req: SubscriptionRequest):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        # Update user profile to 'pro'
+        # We store the PayPal Subscription ID in 'stripe_customer_id' column to reuse it
+        response = supabase.table("profiles").update({
+            "subscription_tier": "pro",
+            "stripe_customer_id": req.subscription_id 
+        }).eq("id", req.user_id).execute()
+        
+        return {"success": True}
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
