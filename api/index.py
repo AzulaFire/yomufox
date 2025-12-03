@@ -74,8 +74,6 @@ async def generate_study_set(req: GenerateRequest):
         raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
 
     # --- DYNAMIC PROMPT LOGIC ---
-    # If target is 'ja', user is English speaker learning Japanese.
-    # If target is 'en', user is Japanese speaker learning English.
     if req.target_language == 'ja':
         teacher_persona = "You are a Japanese language teacher teaching English speakers."
         output_lang = "Japanese"
@@ -86,17 +84,22 @@ async def generate_study_set(req: GenerateRequest):
         native_lang_instructions = "Explain grammar in Japanese."
 
     # 1. System Prompt for Structured JSON
+    # UPDATED: Added instructions for 'description' and 'category'
     system_prompt = f"""
     {teacher_persona}
     Analyze the user's sentence. 
     1. Translate it naturally into {output_lang}.
     2. Explain the key grammar point briefly. {native_lang_instructions}
-    3. Extract 3-5 keywords and create flashcards for them.
+    3. Generate a short, concise description (1 sentence) summarizing what this lesson covers.
+    4. Choose a category that best fits this sentence: 'Travel', 'Business', 'Daily Life', 'Food', 'Culture', 'Grammar', or 'Other'.
+    5. Extract 3-5 keywords and create flashcards for them.
     
     Output strictly valid JSON matching this structure:
     {{
         "translation": "...",
         "grammar_explanation": "...",
+        "description": "...",
+        "category": "...",
         "flashcards": [
             {{"front": "Word in {output_lang}", "back": "Meaning in Native Lang", "reading": "Pronunciation/Reading", "example": "Short example sentence"}}
         ]
@@ -122,15 +125,18 @@ async def generate_study_set(req: GenerateRequest):
         # 4. Save to Supabase
         
         # A. Create the Deck (Saves Grammar here)
+        # UPDATED: Now inserts description, category, and is_public
         deck_response = supabase.table("decks").insert({
             "user_id": req.user_id,
             "title": req.sentence[:30] + "...", 
             "source_text": req.sentence,
             "grammar_text": data.get('grammar_explanation', ''),
-            "target_language": req.target_language # Save target language
+            "target_language": req.target_language,
+            "description": data.get('description', 'AI Generated Lesson'),
+            "category": data.get('category', 'Other'),
+            "is_public": False # User generated content is private by default
         }).execute()
         
-        # Check for data presence (Supabase-py v2 behavior)
         if not deck_response.data:
              print("Warning: No data returned from deck insertion")
             
@@ -171,8 +177,6 @@ async def activate_subscription(req: SubscriptionRequest):
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
     try:
-        # Update user profile to 'pro'
-        # We store the PayPal Subscription ID in 'stripe_customer_id' column to reuse it
         response = supabase.table("profiles").update({
             "subscription_tier": "pro",
             "stripe_customer_id": req.subscription_id 

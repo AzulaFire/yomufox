@@ -1,0 +1,139 @@
+-- IMPORTANT: Replace 'YOUR_USER_ID_HERE' with your actual User UUID from the Supabase Authentication tab.
+-- This user will be the "owner" of these public system decks.
+DO $$
+DECLARE
+  my_user_id uuid := ''; -- <-- DOUBLE CHECK THIS ID
+  deck_intro_en uuid;
+  deck_survival_en uuid;
+  deck_intro_ja uuid;
+  deck_survival_ja uuid;
+BEGIN
+
+  -- ========================================================
+  -- PART 1: FOR JAPANESE SPEAKERS LEARNING ENGLISH (Target: EN)
+  -- ========================================================
+
+  -- 1. Deck: Self Introductions (J->E)
+  INSERT INTO public.decks (
+    user_id, 
+    title, 
+    source_text, 
+    grammar_text, 
+    target_language, 
+    is_public, 
+    description, 
+    category
+  )
+  VALUES (
+    my_user_id,
+    'Lesson 1: Self Introductions (自己紹介)',
+    'Hello, my name is Tanaka. Nice to meet you.',
+    'In English, we use the verb "is" (am/is/are) to equate the subject "My name" with "Tanaka". "Nice to meet you" is a set phrase used when meeting someone for the first time.',
+    'en',
+    true, -- Mark as Public
+    'Learn the basics of introducing yourself in English. Essential for first meetings.',
+    'Beginner'
+  ) RETURNING id INTO deck_intro_en;
+
+  INSERT INTO public.cards (deck_id, user_id, front, back, reading, example_sentence) VALUES 
+  (deck_intro_en, my_user_id, '名前', 'Name', 'Neym', 'My name is Ken. (私の名前はケンです。)'),
+  (deck_intro_en, my_user_id, '〜です', 'is / am', 'Iz / Am', 'I am a student. (私は学生です。)'),
+  (deck_intro_en, my_user_id, 'はじめまして', 'Nice to meet you', 'Nais tu meet yu', 'Nice to meet you, too. (こちらこそ、はじめまして。)'),
+  (deck_intro_en, my_user_id, '私', 'I / My', 'Ay / May', 'I live in Tokyo. (私は東京に住んでいます。)'),
+  (deck_intro_en, my_user_id, '出身', 'From', 'From', 'I am from Osaka. (私は大阪出身です。)');
+
+
+  -- 2. Deck: Survival Phrases (J->E)
+  INSERT INTO public.decks (
+    user_id, 
+    title, 
+    source_text, 
+    grammar_text, 
+    target_language, 
+    is_public, 
+    description, 
+    category
+  )
+  VALUES (
+    my_user_id,
+    'Lesson 2: Survival Phrases (基本フレーズ)',
+    'Where is the bathroom? What time is it?',
+    'Questions often start with "Where" (location), "What" (thing), or "When" (time). The word order is typically [Question Word] + [Verb] + [Subject].',
+    'en',
+    true, -- Mark as Public
+    'Essential phrases for navigating daily life or travel in English-speaking countries.',
+    'Travel'
+  ) RETURNING id INTO deck_survival_en;
+
+  INSERT INTO public.cards (deck_id, user_id, front, back, reading, example_sentence) VALUES 
+  (deck_survival_en, my_user_id, 'トイレ', 'Bathroom', 'Bath-room', 'Can I use the bathroom? (トイレを借りてもいいですか？)'),
+  (deck_survival_en, my_user_id, 'どこ', 'Where', 'Wehr', 'Where are you going? (どこに行くのですか？)'),
+  (deck_survival_en, my_user_id, '何時', 'What time', 'Wat taim', 'What time does it start? (それは何時に始まりますか？)'),
+  (deck_survival_en, my_user_id, '駅', 'Station', 'Stay-shun', 'Is the station far? (駅は遠いですか？)'),
+  (deck_survival_en, my_user_id, '助けて', 'Help', 'Help', 'Please help me. (助けてください。)');
+
+
+  -- ========================================================
+  -- PART 2: FOR ENGLISH SPEAKERS LEARNING JAPANESE (Target: JA)
+  -- ========================================================
+
+  -- 3. Deck: Self Introductions (E->J)
+  INSERT INTO public.decks (
+    user_id, 
+    title, 
+    source_text, 
+    grammar_text, 
+    target_language, 
+    is_public, 
+    description, 
+    category
+  )
+  VALUES (
+    my_user_id,
+    'Lesson 1: Self Introductions',
+    'Hajimemashite. Watashi wa Tanaka desu.',
+    'Japanese sentences often end with the verb "desu" (to be). The particle "wa" marks the topic (Watashi/I). "Hajimemashite" comes from "hajimeru" (to begin) and implies beginning a new relationship.',
+    'ja',
+    true, -- Mark as Public
+    'Master the art of the Japanese self-introduction (Jikoshoukai).',
+    'Beginner'
+  ) RETURNING id INTO deck_intro_ja;
+
+  INSERT INTO public.cards (deck_id, user_id, front, back, reading, example_sentence) VALUES 
+  (deck_intro_ja, my_user_id, 'Hello/Nice to meet you', 'はじめまして', 'Hajimemashite', 'はじめまして、よろしく。(Nice to meet you, regards.)'),
+  (deck_intro_ja, my_user_id, 'I', '私', 'Watashi', '私は学生です。(I am a student.)'),
+  (deck_intro_ja, my_user_id, 'Name', '名前', 'Namae', '名前は何ですか？(What is your name?)'),
+  (deck_intro_ja, my_user_id, 'To be (is/am)', 'です', 'Desu', 'これはペンです。(This is a pen.)'),
+  (deck_intro_ja, my_user_id, 'Best regards', 'よろしく', 'Yoroshiku', 'よろしくお願いします。(Please treat me well / Best regards.)');
+
+
+  -- 4. Deck: Survival Phrases (E->J)
+  INSERT INTO public.decks (
+    user_id, 
+    title, 
+    source_text, 
+    grammar_text, 
+    target_language, 
+    is_public, 
+    description, 
+    category
+  )
+  VALUES (
+    my_user_id,
+    'Lesson 2: Survival Phrases',
+    'Toire wa doko desu ka? Ima nan-ji desu ka?',
+    'To ask a question in formal Japanese, you simply add the particle "ka" to the end of a sentence. "Doko" means where. "Nan-ji" means what time.',
+    'ja',
+    true, -- Mark as Public
+    'Critical phrases for your trip to Japan. Ask for directions, time, and help.',
+    'Travel'
+  ) RETURNING id INTO deck_survival_ja;
+
+  INSERT INTO public.cards (deck_id, user_id, front, back, reading, example_sentence) VALUES 
+  (deck_survival_ja, my_user_id, 'Bathroom', 'トイレ', 'Toire', 'トイレはどこですか？(Where is the bathroom?)'),
+  (deck_survival_ja, my_user_id, 'Where', 'どこ', 'Doko', 'ここはどこですか？(Where is this place?)'),
+  (deck_survival_ja, my_user_id, 'What time', '何時', 'Nan-ji', '今、何時ですか？(What time is it now?)'),
+  (deck_survival_ja, my_user_id, 'Excuse me', 'すみません', 'Sumimasen', 'すみません、水をください。(Excuse me, water please.)'),
+  (deck_survival_ja, my_user_id, 'Understand', 'わかります', 'Wakarimasu', '日本語がわかります。(I understand Japanese.)');
+
+END $$;
