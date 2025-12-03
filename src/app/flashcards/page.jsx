@@ -1,38 +1,70 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
-export default function FlashcardsPage() {
+function FlashcardsContent() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const deckId = searchParams.get('deckId');
+
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deckTitle, setDeckTitle] = useState('');
 
   useEffect(() => {
-    const fetchCards = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const fetchData = async () => {
+      setLoading(true);
 
-      if (user) {
-        const { data } = await supabase
-          .from('cards')
-          .select('*')
-          .order('created_at', { ascending: false });
+      let query = supabase.from('cards').select('*');
 
-        if (data) setCards(data);
+      if (deckId) {
+        // 1. Specific Deck Mode (Public or Private specific deck)
+        query = query.eq('deck_id', deckId);
+
+        // Fetch deck title for display
+        const { data: deckData } = await supabase
+          .from('decks')
+          .select('title')
+          .eq('id', deckId)
+          .single();
+
+        if (deckData) {
+          setDeckTitle(deckData.title);
+        }
+      } else {
+        // 2. User's All Cards Mode (Default behavior)
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          query = query.eq('user_id', user.id);
+          setDeckTitle(t.flashcardsPage?.title || 'Your Flashcards');
+        } else {
+          // No user and no specific deckId -> Empty state or guest view
+          setLoading(false);
+          return;
+        }
+      }
+
+      const { data } = await query.order('created_at', { ascending: false });
+
+      if (data) {
+        setCards(data);
       }
       setLoading(false);
     };
 
-    fetchCards();
-  }, []);
+    fetchData();
+  }, [deckId, t.flashcardsPage?.title]);
 
   if (loading)
     return (
@@ -50,10 +82,12 @@ export default function FlashcardsPage() {
         className='text-center mb-10'
       >
         <h2 className='text-4xl font-bold bg-linear-to-r from-white to-neutral-400 bg-clip-text text-transparent mb-4 pb-2 leading-tight'>
-          {t.flashcardsPage?.title || 'Your Flashcards'}
+          {deckTitle || t.flashcardsPage?.title || 'Your Flashcards'}
         </h2>
         <p className='text-neutral-400'>
-          Review the vocabulary you&apos;ve collected from your translations.
+          {deckId
+            ? 'Reviewing this specific deck.'
+            : "Review the vocabulary you've collected from your translations."}
         </p>
       </motion.div>
 
@@ -61,14 +95,16 @@ export default function FlashcardsPage() {
         <div className='text-center py-20 text-neutral-400'>
           <p>
             {t.flashcardsPage?.empty ||
-              'No flashcards yet. Go to Translate to generate some!'}
+              'No flashcards found. Go to Translate to generate some!'}
           </p>
-          <Button
-            className='mt-4 bg-orange-600 hover:bg-orange-700 text-white'
-            onClick={() => (window.location.href = '/translate')}
-          >
-            {t.flashcardsPage?.createBtn || 'Create First Set'}
-          </Button>
+          {!deckId && (
+            <Button
+              className='mt-4 bg-orange-600 hover:bg-orange-700 text-white'
+              onClick={() => (window.location.href = '/translate')}
+            >
+              {t.flashcardsPage?.createBtn || 'Create First Set'}
+            </Button>
+          )}
         </div>
       ) : (
         <div className='w-full max-w-2xl'>
@@ -101,7 +137,7 @@ export default function FlashcardsPage() {
                 <span className='absolute top-6 left-6 text-xs font-bold text-orange-500 tracking-widest uppercase'>
                   {t.flashcardsPage?.frontLabel || 'Japanese'}
                 </span>
-                <h3 className='text-5xl font-bold mb-4 text-white'>
+                <h3 className='text-5xl font-bold mb-4 text-white text-center'>
                   {cards[currentIndex].front}
                 </h3>
                 <p className='text-neutral-400 text-lg'>
@@ -161,5 +197,19 @@ export default function FlashcardsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function FlashcardsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='flex h-[50vh] justify-center items-center'>
+          <Loader2 className='animate-spin text-orange-500 w-8 h-8' />
+        </div>
+      }
+    >
+      <FlashcardsContent />
+    </Suspense>
   );
 }

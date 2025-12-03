@@ -12,6 +12,7 @@ const translations = {
       flashcards: 'Flashcards',
       quizzes: 'Quizzes',
       grammar: 'Grammar',
+      library: 'Library',
     },
   },
   ja: {
@@ -21,6 +22,7 @@ const translations = {
       flashcards: '単語カード',
       quizzes: 'クイズ',
       grammar: '文法',
+      library: '図書館',
     },
   },
 };

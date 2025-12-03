@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import {
   BookOpen,
+  Library,
   Pencil,
   ClipboardList,
   Book,
@@ -68,6 +69,11 @@ export default function Header() {
       name: t.modules.grammar,
       icon: <BookOpen className='w-5 h-5' />,
       href: '/grammar',
+    },
+    {
+      name: t.modules.library,
+      icon: <Library className='w-5 h-5' />,
+      href: '/library',
     },
   ];
 
