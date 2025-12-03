@@ -57,12 +57,14 @@ export default function Home() {
           {t.learnTitle}
         </motion.h2>
         <p className='text-lg text-neutral-300 mb-8'>{t.learnDesc}</p>
-        <Button
-          size='lg'
-          className='text-lg px-8 py-4 flex items-center gap-2 cursor-pointer'
-        >
-          <BookOpen className='w-5 h-5' /> {t.startLearning}
-        </Button>
+        <Link href='/library'>
+          <Button
+            size='lg'
+            className='text-lg px-8 py-4 flex items-center gap-2 hover:bg-orange-500 cursor-pointer'
+          >
+            <BookOpen className='w-5 h-5' /> {t.startLearning}
+          </Button>
+        </Link>
       </section>
 
       {/* Modules */}
